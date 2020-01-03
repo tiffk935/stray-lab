@@ -1,12 +1,15 @@
 <template lang="pug">
   .data-modal(:class="{ show: showSelf }")
     .data-title {{chart}}
-    .data-question 資料內容
+    .data-question
+      .lost-count(v-if="chart=='家寵遺失數'") 0
     .data-actions
       .action-ok(@click="hide(); $emit('ended')") 我知道了
 </template>
 
 <script>
+import * as d3 from 'd3'
+
 export default {
   // props: {
   //   situation: {
@@ -20,6 +23,7 @@ export default {
   data () {
     return {
       showSelf: false,
+      lostCount: 41663, // 寵物走失數
     }
   },
   methods: {
@@ -28,8 +32,31 @@ export default {
     },
     hide () {
       this.showSelf = false
+    },
+
+    lostCountAnimation () {
+      var end = this.lostCount;
+      setTimeout(function(){
+        d3.select('.lost-count').transition()
+          .tween("text", () => {
+            var interpolator = d3.interpolateNumber(0, end)
+            return function(t) { d3.select(this).text(Math.round(interpolator(t))) }
+          })
+          .duration(1000);
+      }, 100);
     }
-  }
+  },
+  watch: {
+    chart: {
+      immediate: true,
+      deep: true,
+      handler(newValue) {
+        if(newValue == '家寵遺失數'){
+          this.lostCountAnimation();
+        }
+      }
+    }
+  },
 }
 </script>
 
@@ -93,5 +120,11 @@ export default {
       color: black;
     }
   }
+}
+
+.lost-count {
+  text-align: center;
+  font-size: 100px;
+  font-weight: 700;
 }
 </style>
